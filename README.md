@@ -66,5 +66,7 @@ change one line in `container.ts`.
 ## Docs
 
 - [`docs/interview-day-playbook.md`](docs/interview-day-playbook.md): the 2.5h plan and rename checklist
+- [`docs/spec.md`](docs/spec.md): spec template, the single source of truth during the build
+- [`docs/prompt-playbook.md`](docs/prompt-playbook.md): step-by-step prompts for the build
 - [`docs/decisions.md`](docs/decisions.md): trade-off log (pre-filled; add to it live)
 - [`AGENTS.md`](AGENTS.md): conventions for Claude Code / Cursor working in this repo
