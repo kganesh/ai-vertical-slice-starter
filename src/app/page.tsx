@@ -1,5 +1,5 @@
-import { ItemsWorkspace } from "@/features/items/items-workspace";
+import { Workspace } from "@/features/certificates/workspace";
 
 export default function Home() {
-  return <ItemsWorkspace />;
+  return <Workspace />;
 }

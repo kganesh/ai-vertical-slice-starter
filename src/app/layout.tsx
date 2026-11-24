@@ -7,8 +7,8 @@ import { AiStatusBadge } from "@/components/ai-status-badge";
 import "./globals.css";
 
 // Rename on interview day.
-const APP_NAME = "Slice";
-const APP_TAGLINE = "Track, draft and review records with AI assistance";
+const APP_NAME = "Clean Claim";
+const APP_TAGLINE = "Match renewable certificates to facility usage";
 
 export const metadata: Metadata = {
   title: APP_NAME,

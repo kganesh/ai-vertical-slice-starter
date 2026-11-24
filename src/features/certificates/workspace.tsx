@@ -2,59 +2,53 @@
 
 import { useState } from "react";
 import { Plus } from "lucide-react";
-import { toast } from "sonner";
-import type { ItemStatus } from "@/domain/item";
-import type { ApiError } from "@/lib/api-client";
+import type { Region } from "@/domain/certificate";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/primitives";
 import { AiDraftPanel } from "./ai-draft-panel";
-import { ItemForm } from "./item-form";
-import { ItemsTable, ItemsToolbar } from "./items-table";
-import { useItems } from "./use-items";
-import type { z } from "zod";
+import { CertificateForm } from "./certificate-form";
+import { CertificatesTable, CertificatesToolbar } from "./certificates-table";
+import { useCertificates } from "./use-certificates";
 
-type Status = z.infer<typeof ItemStatus>;
+// Matching/coverage lands in the next step; facilities are served by /api/facilities.
+const REPORTING_YEAR = 2026;
 
-export function ItemsWorkspace() {
+export function Workspace() {
   const [q, setQ] = useState("");
-  const [status, setStatus] = useState<Status | "">("");
+  const [region, setRegion] = useState<Region | "">("");
   const [showManual, setShowManual] = useState(false);
-  const { items, error, loading, reload, create, update, remove } = useItems({
+  const { certificates, error, loading, reload, create, remove } = useCertificates({
     q: q || undefined,
-    status: status || undefined,
+    region: region || undefined,
   });
 
-  const total = items?.reduce((n, i) => n + (i.status === "active" ? 1 : 0), 0) ?? 0;
+  const available =
+    certificates?.reduce((n, c) => n + (c.status === "available" ? c.mwh : 0), 0) ?? 0;
 
   return (
     <div className="flex flex-col gap-8">
       <section className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold tracking-tight">Records</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">{REPORTING_YEAR} renewable claim</h1>
         <p className="text-muted-foreground">
-          {items ? `${items.length} shown · ${total} active` : "Loading…"}
+          {certificates
+            ? `${certificates.length} certificates · ${available.toLocaleString()} MWh available`
+            : "Loading…"}
         </p>
       </section>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
-        <section aria-labelledby="list-heading" className="flex min-w-0 flex-col gap-3">
-          <h2 id="list-heading" className="sr-only">
-            All records
+        <section aria-labelledby="inventory-heading" className="flex min-w-0 flex-col gap-3">
+          <h2 id="inventory-heading" className="font-semibold">
+            Certificate inventory
           </h2>
-          <ItemsToolbar q={q} status={status} onQ={setQ} onStatus={setStatus} />
-          <ItemsTable
-            items={items}
+          <CertificatesToolbar q={q} region={region} onQ={setQ} onRegion={setRegion} />
+          <CertificatesTable
+            certificates={certificates}
             loading={loading}
             error={error}
-            filtered={Boolean(q || status)}
+            filtered={Boolean(q || region)}
+            reportingYear={REPORTING_YEAR}
             onRetry={reload}
-            onArchive={async (item) => {
-              try {
-                await update(item.id, { status: "archived" });
-                toast.success(`Archived "${item.name}"`);
-              } catch (e) {
-                toast.error((e as ApiError).message);
-              }
-            }}
             onDelete={remove}
           />
         </section>
@@ -67,7 +61,7 @@ export function ItemsWorkspace() {
                 <CardTitle>Add manually</CardTitle>
               </CardHeader>
               <CardContent>
-                <ItemForm
+                <CertificateForm
                   onSubmit={async (input) => {
                     await create(input);
                     setShowManual(false);

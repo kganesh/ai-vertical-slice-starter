@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { AlertTriangle, CheckCircle2, Info, Sparkles, Wand2 } from "lucide-react";
 import { toast } from "sonner";
-import type { CreateItemInput } from "@/domain/item";
-import type { SuggestItemResult } from "@/server/ai/features/suggest-item";
+import type { CreateCertificateInput } from "@/domain/certificate";
+import type { SuggestCertificateResult } from "@/server/ai/features/suggest-certificate";
 import { Button } from "@/components/ui/button";
 import {
   Alert,
@@ -18,10 +18,10 @@ import {
   Textarea,
 } from "@/components/ui/primitives";
 import { api, ApiError } from "@/lib/api-client";
-import { ItemForm } from "./item-form";
+import { CertificateForm } from "./certificate-form";
 
 const EXAMPLE =
-  "Hi team, attaching the Q4 invoice for the Mesa Verde solar project. Total delivered was 8,250 MWh across October to December. Please log it against the 2026 renewable target.";
+  "Confirming transfer of 2,500 Wind RECs, ERCOT, vintage 2026, from Lone Star Wind Farm II, tracking ID TX-88213.";
 
 const FALLBACK_COPY: Record<string, string> = {
   not_configured: "AI isn't configured, so this is a rule-based draft.",
@@ -36,17 +36,23 @@ const FALLBACK_COPY: Record<string, string> = {
  *   paste text -> AI draft (with confidence + rationale) -> human edits -> save
  * Nothing AI-generated is saved without an explicit user action.
  */
-export function AiDraftPanel({ onCreate }: { onCreate: (i: CreateItemInput) => Promise<unknown> }) {
+export function AiDraftPanel({
+  onCreate,
+}: {
+  onCreate: (i: CreateCertificateInput) => Promise<unknown>;
+}) {
   const [text, setText] = useState("");
   const [inputError, setInputError] = useState<string>();
   const [pending, setPending] = useState(false);
-  const [draft, setDraft] = useState<SuggestItemResult | null>(null);
+  const [draft, setDraft] = useState<SuggestCertificateResult | null>(null);
 
   async function generate() {
     setPending(true);
     setInputError(undefined);
     try {
-      setDraft(await api<SuggestItemResult>("/api/ai/suggest", { method: "POST", json: { text } }));
+      setDraft(
+        await api<SuggestCertificateResult>("/api/ai/suggest", { method: "POST", json: { text } }),
+      );
     } catch (e) {
       const err = e as ApiError;
       if (err.code === "VALIDATION") setInputError(err.fieldErrors.text?.[0] ?? err.message);
@@ -66,7 +72,8 @@ export function AiDraftPanel({ onCreate }: { onCreate: (i: CreateItemInput) => P
           <Sparkles className="size-4 text-primary" aria-hidden /> Draft with AI
         </CardTitle>
         <CardDescription>
-          Paste an email, invoice line or note. You review every field before it&apos;s saved.
+          Paste a broker email or transfer confirmation. You review every field before it&apos;s
+          saved.
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
@@ -90,7 +97,7 @@ export function AiDraftPanel({ onCreate }: { onCreate: (i: CreateItemInput) => P
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 rows={5}
-                placeholder="e.g. Delivered 8,250 MWh from the Mesa Verde solar project in Q4…"
+                placeholder="e.g. Confirming transfer of 2,500 Wind RECs, ERCOT, vintage 2026…"
               />
             </Field>
             <div className="flex justify-end">
@@ -129,17 +136,18 @@ export function AiDraftPanel({ onCreate }: { onCreate: (i: CreateItemInput) => P
                 </Alert>
               )}
             </div>
-            <ItemForm
+            <CertificateForm
               key={draft.latencyMs}
               source="ai_assisted"
               submitLabel="Confirm & save"
               highlight={s?.missingFields}
               initial={{
-                name: s?.name,
-                description: s?.description,
-                category: s?.category,
-                quantity: s?.quantity != null ? String(s.quantity) : "",
-                unit: s?.unit ?? "",
+                projectName: s?.projectName ?? "",
+                energyType: s?.energyType ?? "",
+                region: s?.region ?? "",
+                vintage: s?.vintage != null ? String(s.vintage) : "",
+                mwh: s?.mwh != null ? String(s.mwh) : "",
+                trackingId: s?.trackingId ?? "",
               }}
               onCancel={() => setDraft(null)}
               onSubmit={async (input) => {

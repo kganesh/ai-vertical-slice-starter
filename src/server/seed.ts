@@ -1,59 +1,117 @@
-import type { Item } from "@/domain/item";
+import type { Certificate } from "@/domain/certificate";
+import type { Facility } from "@/domain/facility";
 
 /**
- * Realistic-looking seed data makes the UI demo well. On interview day, ask
- * your AI assistant: "Generate 8 realistic seed records for <domain> matching
- * the Item schema in src/domain/item.ts" and paste them here.
+ * Seeded so the demo shows every coverage outcome:
+ *  - PJM:   fully covered
+ *  - ERCOT: certificates exist but run out across two facilities
+ *  - WECC:  partly covered; one certificate is the wrong vintage (2025)
+ *  - MISO:  only a 2025 certificate, so 0% covered
  */
+export const REPORTING_YEAR = 2026;
+
+export const seedFacilities: Facility[] = [
+  {
+    id: "fac-dal",
+    name: "Dallas Distribution Center",
+    city: "Dallas, TX",
+    region: "ERCOT",
+    year: REPORTING_YEAR,
+    usageMwh: 3000,
+  },
+  {
+    id: "fac-hou",
+    name: "Houston Plant",
+    city: "Houston, TX",
+    region: "ERCOT",
+    year: REPORTING_YEAR,
+    usageMwh: 1800,
+  },
+  {
+    id: "fac-pdx",
+    name: "Portland HQ",
+    city: "Portland, OR",
+    region: "WECC",
+    year: REPORTING_YEAR,
+    usageMwh: 2200,
+  },
+  {
+    id: "fac-chi",
+    name: "Chicago Office",
+    city: "Chicago, IL",
+    region: "PJM",
+    year: REPORTING_YEAR,
+    usageMwh: 2400,
+  },
+  {
+    id: "fac-msp",
+    name: "Minneapolis Warehouse",
+    city: "Minneapolis, MN",
+    region: "MISO",
+    year: REPORTING_YEAR,
+    usageMwh: 900,
+  },
+];
+
 const daysAgo = (n: number) => new Date(Date.now() - n * 86_400_000).toISOString();
 
-export function seedItems(): Item[] {
-  const rows: Array<Omit<Item, "id" | "createdAt" | "updatedAt"> & { age: number }> = [
+export function seedCertificates(): Certificate[] {
+  const rows: Array<Omit<Certificate, "id" | "createdAt" | "updatedAt" | "status" | "source">> = [
     {
-      name: "Wind farm output – Q3",
-      description: "Metered generation from the West Texas wind portfolio.",
-      category: "energy",
-      status: "active",
-      quantity: 12_400,
-      unit: "MWh",
-      source: "manual",
-      age: 2,
+      projectName: "Lone Star Wind Farm II",
+      energyType: "wind",
+      region: "ERCOT",
+      vintage: 2026,
+      mwh: 2500,
+      trackingId: "TX-88213",
     },
     {
-      name: "Solar RECs – Oregon",
-      description: "Renewable energy certificates issued for community solar sites.",
-      category: "certificate",
-      status: "active",
-      quantity: 3_200,
-      unit: "RECs",
-      source: "ai_assisted",
-      age: 5,
+      projectName: "Panhandle Solar",
+      energyType: "solar",
+      region: "ERCOT",
+      vintage: 2026,
+      mwh: 1500,
+      trackingId: "TX-90114",
     },
     {
-      name: "HQ electricity – Scope 2",
-      description: "Purchased electricity for the Portland headquarters.",
-      category: "emissions",
-      status: "draft",
-      quantity: 418,
-      unit: "tCO2e",
-      source: "manual",
-      age: 9,
+      projectName: "Columbia River Hydro",
+      energyType: "hydro",
+      region: "WECC",
+      vintage: 2026,
+      mwh: 1800,
+      trackingId: "WR-55102",
     },
     {
-      name: "Fleet fuel – 2025",
-      description: "Diesel consumption for the delivery fleet, pending invoice reconciliation.",
-      category: "emissions",
-      status: "archived",
-      quantity: 96,
-      unit: "tCO2e",
-      source: "manual",
-      age: 40,
+      projectName: "Mesa Verde Solar",
+      energyType: "solar",
+      region: "WECC",
+      vintage: 2025,
+      mwh: 800,
+      trackingId: "WR-41877",
+    },
+    {
+      projectName: "Appalachian Ridge Wind",
+      energyType: "wind",
+      region: "PJM",
+      vintage: 2026,
+      mwh: 2400,
+      trackingId: "PJM-7731",
+    },
+    {
+      projectName: "Prairie Gust Wind",
+      energyType: "wind",
+      region: "MISO",
+      vintage: 2025,
+      mwh: 600,
+      trackingId: "M-RETS-2209",
     },
   ];
-  return rows.map(({ age, ...r }, i) => ({
+  return rows.map((r, i) => ({
     ...r,
-    id: `seed-${i + 1}`,
-    createdAt: daysAgo(age),
-    updatedAt: daysAgo(age),
+    id: `cert-${i + 1}`,
+    status: "available",
+    source: "manual",
+    createdAt: daysAgo(10 + i),
+    updatedAt: daysAgo(10 + i),
   }));
 }

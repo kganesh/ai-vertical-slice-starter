@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { MockLanguageModelV4 } from "ai/test";
 import { z } from "zod";
 import { generateStructured } from "./structured";
-import { heuristicSuggestion, suggestItem } from "./features/suggest-item";
+import { heuristicSuggestion, suggestCertificate } from "./features/suggest-certificate";
 
 const schema = z.object({ label: z.string(), score: z.number().min(0).max(1) });
 const fallback = () => ({ label: "fallback", score: 0 });
@@ -70,22 +70,32 @@ describe("generateStructured", () => {
   });
 });
 
-describe("suggest-item", () => {
-  it("heuristic extracts quantity, unit and category", () => {
-    const s = heuristicSuggestion("Q4 solar delivery\nTotal 8,250 MWh delivered");
-    expect(s).toMatchObject({ quantity: 8250, unit: "MWh", category: "energy", confidence: 0.3 });
+describe("suggest-certificate", () => {
+  const email =
+    "Confirming transfer of 2,500 Wind RECs, ERCOT, vintage 2026, from Lone Star Wind Farm II, tracking ID TX-88213.";
+
+  it("heuristic extracts mwh, region, vintage, type and tracking id", () => {
+    expect(heuristicSuggestion(email)).toMatchObject({
+      mwh: 2500,
+      region: "ERCOT",
+      vintage: 2026,
+      energyType: "wind",
+      trackingId: "TX-88213",
+      projectName: "Lone Star Wind Farm II",
+      confidence: 0.3,
+    });
   });
 
   it("heuristic flags missing fields instead of guessing", () => {
     const s = heuristicSuggestion("Some note without numbers");
-    expect(s.quantity).toBeNull();
-    expect(s.missingFields).toEqual(expect.arrayContaining(["quantity", "unit", "category"]));
+    expect(s.mwh).toBeNull();
+    expect(s.missingFields).toEqual(expect.arrayContaining(["mwh", "region", "vintage"]));
   });
 
   it("runs in fallback mode without an API key and requires review", async () => {
     delete process.env.OPENAI_API_KEY;
     delete process.env.ANTHROPIC_API_KEY;
-    const r = await suggestItem("Delivered 1,200 MWh of wind energy in October");
+    const r = await suggestCertificate(email);
     expect(r.source).toBe("fallback");
     expect(r.needsReview).toBe(true);
   });

@@ -1,3 +1,26 @@
+# Clean Claim: design
+
+**Problem:** Priya must match RECs to facility electricity use for 2026, never double-count, and show her auditor why each facility is or isn't covered. Certificates arrive as messy broker emails.
+
+**Entities**
+- Facility: id, name, region, year, usageMwh (seeded, read-only)
+- Certificate: id, projectName, energyType, region, vintage, mwh, trackingId, status (available|retired), source (manual|ai_assisted)
+- Allocation (next step): certificateId, facilityId, mwh, status (draft|final). The split lives here, not on the certificate.
+
+**Invariant:** for every certificate, sum(allocations.mwh) <= certificate.mwh. Enforced in one function, unit-tested.
+
+**Matching (deterministic, no AI):** POST /api/matching/run clears draft allocations and recomputes (idempotent). Greedy per facility: eligible = same region, vintage == year, remaining > 0; allocate min(need, remaining). Stable order (facility name, then vintage/id) so results are reproducible and explainable.
+
+**Coverage:** GET /api/coverage → per facility: usage, matched, %, allocations, gap reason (no certs in region / only wrong-vintage certs / region certs used by other facilities).
+
+**AI:** extraction only. Pasted text → draft certificate → Priya reviews → save. Grounding check: MWh and vintage must appear in the text. Never used for matching.
+
+**Cuts:** PDF/OCR input, manual per-facility allocation, multiple years, auth.
+
+**Why greedy, not optimal:** region + vintage are hard partitions; within a region greedy is auditable and good enough. LP optimization is a later option.
+
+---
+
 # Decisions & trade-offs
 
 Keep this open during the build. One line per decision, written when you make
