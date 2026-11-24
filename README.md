@@ -1,36 +1,70 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AI Vertical Slice Starter
 
-## Getting Started
+A production-minded Next.js starter for building a **thin vertical slice** fast:
+typed API → service → storage, a polished accessible UI, and an AI feature
+with structured output, guardrails and a deterministic fallback.
 
-First, run the development server:
+![stack](https://img.shields.io/badge/Next.js-16-black) ![ts](https://img.shields.io/badge/TypeScript-strict-blue) ![ai](https://img.shields.io/badge/Vercel_AI_SDK-OpenAI%20%7C%20Anthropic-green)
+
+## Quick start
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env.local   # add a key, or leave blank for fallback mode
+npm run dev                  # http://localhost:3000
+npm run check                # typecheck + lint + tests
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## What's in the box
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Layer | Where | What it gives you |
+|---|---|---|
+| Domain | `src/domain/item.ts` | zod schemas shared by API, storage and UI. **Rename this first.** |
+| API | `src/app/api/**/route.ts` | Thin route handlers: validate → call service → respond |
+| Errors | `src/lib/errors.ts`, `api-handler.ts` | One error shape `{error:{code,message,details,requestId}}`, field-level validation errors, no leaked internals |
+| Storage | `src/server/repository/` | `ItemRepository` interface + atomic, write-serialized JSON-file adapter |
+| Wiring | `src/server/container.ts` | Composition root: swap storage/AI provider in one place |
+| AI core | `src/server/ai/structured.ts` | `generateStructured()`: schema-validated output, timeout, retry, business-rule `check`, fallback with a reason |
+| AI feature | `src/server/ai/features/suggest-item.ts` | Free text → structured draft with confidence, rationale, missing fields; grounding check; rule-based fallback |
+| UI | `src/features/items/` | List + search/filter, skeletons, empty/error/retry states, optimistic delete, human-in-the-loop AI draft review |
+| UI kit | `src/components/ui/` | shadcn/ui-style Button, Card, Field, Badge, Alert, Skeleton, EmptyState |
+| Observability | `src/lib/logger.ts` | Structured JSON logs: request id, latency, AI success/fallback + reason |
+| Tests | `**/*.test.ts` | Vitest: AI fallback paths (mock model), repository, error handling |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## AI behaviour
 
-## Learn More
+```
+user text ─► validate (len) ─► wrap as untrusted data ─► LLM (structured, temp 0, 15s timeout, 1 retry)
+                                                         │
+                         schema fails / timeout / error / check fails
+                                                         ▼
+                                           deterministic fallback (low confidence)
+                                                         │
+                                       UI: "AI draft / rule-based draft" + confidence
+                                       + rationale + highlighted missing fields
+                                                         ▼
+                                           human edits ─► Confirm & save (source: ai_assisted)
+```
 
-To learn more about Next.js, take a look at the following resources:
+Nothing AI-generated is persisted without an explicit user action, and every
+saved record keeps provenance (`source`).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+`GET /api/health` reports whether AI is enabled and which model (never the key).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Deploy (Vercel)
 
-## Deploy on Vercel
+```bash
+npx vercel            # first time: link project
+npx vercel env add OPENAI_API_KEY
+npx vercel --prod
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Storage on Vercel uses `/tmp` (ephemeral, per instance), fine for a demo.
+For real use, implement `ItemRepository` against Postgres (Neon/Supabase) and
+change one line in `container.ts`.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Docs
+
+- [`docs/interview-day-playbook.md`](docs/interview-day-playbook.md): the 2.5h plan and rename checklist
+- [`docs/decisions.md`](docs/decisions.md): trade-off log (pre-filled; add to it live)
+- [`AGENTS.md`](AGENTS.md): conventions for Claude Code / Cursor working in this repo
