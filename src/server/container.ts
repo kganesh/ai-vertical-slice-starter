@@ -11,6 +11,10 @@ import {
   type FacilityRepository,
 } from "@/server/repository/facility-repository";
 import { seedCertificates, seedFacilities } from "@/server/seed";
+import {
+  JsonFileAllocationRepository,
+  type AllocationRepository,
+} from "@/server/repository/allocation-repository";
 
 const dataDir =
   process.env.DATA_DIR ??
@@ -20,6 +24,7 @@ const dataDir =
 const g = globalThis as unknown as {
   certificateRepo?: CertificateRepository;
   facilityRepo?: FacilityRepository;
+  allocationRepo?: AllocationRepository;
 };
 
 export const certificateRepo: CertificateRepository =
@@ -29,7 +34,11 @@ export const certificateRepo: CertificateRepository =
 export const facilityRepo: FacilityRepository =
   g.facilityRepo ?? new InMemoryFacilityRepository(seedFacilities);
 
+export const allocationRepo: AllocationRepository =
+  g.allocationRepo ?? new JsonFileAllocationRepository(path.join(dataDir, "allocations.json"));
+
 if (process.env.NODE_ENV !== "production") {
   g.certificateRepo = certificateRepo;
   g.facilityRepo = facilityRepo;
+  g.allocationRepo = allocationRepo;
 }

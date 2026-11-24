@@ -7,20 +7,39 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/primitives";
 import { AiDraftPanel } from "./ai-draft-panel";
 import { CertificateForm } from "./certificate-form";
+import { CoverageCard } from "./coverage-card";
 import { CertificatesTable, CertificatesToolbar } from "./certificates-table";
 import { useCertificates } from "./use-certificates";
 
-// Matching/coverage lands in the next step; facilities are served by /api/facilities.
 const REPORTING_YEAR = 2026;
 
 export function Workspace() {
   const [q, setQ] = useState("");
   const [region, setRegion] = useState<Region | "">("");
   const [showManual, setShowManual] = useState(false);
-  const { certificates, error, loading, reload, create, remove } = useCertificates({
+  const [inventoryVersion, setInventoryVersion] = useState(0);
+  const {
+    certificates,
+    error,
+    loading,
+    reload,
+    create: createCert,
+    remove: removeCert,
+  } = useCertificates({
     q: q || undefined,
     region: region || undefined,
   });
+
+  const bump = () => setInventoryVersion((v) => v + 1);
+  const create: typeof createCert = async (input) => {
+    const c = await createCert(input);
+    bump();
+    return c;
+  };
+  const remove: typeof removeCert = async (c) => {
+    await removeCert(c);
+    bump();
+  };
 
   const available =
     certificates?.reduce((n, c) => n + (c.status === "available" ? c.mwh : 0), 0) ?? 0;
@@ -35,6 +54,8 @@ export function Workspace() {
             : "Loading…"}
         </p>
       </section>
+
+      <CoverageCard version={inventoryVersion} />
 
       <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
         <section aria-labelledby="inventory-heading" className="flex min-w-0 flex-col gap-3">
