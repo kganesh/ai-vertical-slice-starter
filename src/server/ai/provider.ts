@@ -2,9 +2,9 @@
  * Provider selection from env, via the Vercel AI SDK, so switching between
  * OpenAI / Anthropic / any OpenAI-compatible gateway is a config change.
  *
- *   AI_PROVIDER=openai|anthropic   (default: whichever key is present)
+ *   AI_PROVIDER=anthropic|openai   (default: anthropic if its key is present)
  *   AI_MODEL=<model id>            (defaults below)
- *   OPENAI_API_KEY / ANTHROPIC_API_KEY
+ *   ANTHROPIC_API_KEY (primary) / OPENAI_API_KEY (optional alternative)
  *   AI_BASE_URL                    (optional: Azure/OpenRouter/LiteLLM gateway)
  *
  * No key -> returns null and every AI feature runs in fallback mode. The app
@@ -16,9 +16,13 @@ import { createAnthropic } from "@ai-sdk/anthropic";
 
 export type ProviderName = "openai" | "anthropic";
 
+/**
+ * Sonnet by default: extraction accuracy is a scoring criterion and latency (a few
+ * seconds) fits the 15 s budget. Set AI_MODEL=claude-haiku-5-5 for speed/cost.
+ */
 const DEFAULT_MODELS: Record<ProviderName, string> = {
+  anthropic: "claude-sonnet-5-5",
   openai: "gpt-4o-mini",
-  anthropic: "claude-haiku-4-5",
 };
 
 export interface AiConfig {

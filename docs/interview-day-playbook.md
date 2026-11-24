@@ -18,7 +18,7 @@ Also stated: UI clarity, aesthetics and accessibility are **critical**; they're 
 
 ## Before the call
 - [ ] `git pull && npm install && npm run check`
-- [ ] `.env.local` ready for whichever provider key they give you (`AI_PROVIDER`, key, optional `AI_MODEL`)
+- [ ] `.env.local`: `AI_PROVIDER=anthropic`, `ANTHROPIC_API_KEY=` ready to paste their key (optional `AI_MODEL`)
 - [ ] App runs once with a real key; header badge shows "AI on"
 - [ ] Vercel project linked; a trivial push deploys
 - [ ] Editor zoomed in, notifications off, only needed tabs open (it's recorded)

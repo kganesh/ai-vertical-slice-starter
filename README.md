@@ -4,7 +4,7 @@ A production-minded Next.js starter for building a **thin vertical slice** fast:
 typed API → service → storage, a polished accessible UI, and an AI feature
 with structured output, guardrails and a deterministic fallback.
 
-![stack](https://img.shields.io/badge/Next.js-16-black) ![ts](https://img.shields.io/badge/TypeScript-strict-blue) ![ai](https://img.shields.io/badge/Vercel_AI_SDK-OpenAI%20%7C%20Anthropic-green)
+![stack](https://img.shields.io/badge/Next.js-16-black) ![ts](https://img.shields.io/badge/TypeScript-strict-blue) ![ai](https://img.shields.io/badge/Vercel_AI_SDK-Anthropic%20Claude-green)
 
 ## Quick start
 
@@ -34,7 +34,7 @@ npm run check                # typecheck + lint + tests
 ## AI behaviour
 
 ```
-user text ─► validate (len) ─► wrap as untrusted data ─► LLM (structured, temp 0, 15s timeout, 1 retry)
+user text ─► validate (len) ─► wrap as untrusted data ─► Claude (JSON-schema output, 15s timeout, 1 retry)
                                                          │
                          schema fails / timeout / error / check fails
                                                          ▼
@@ -55,7 +55,7 @@ saved record keeps provenance (`source`).
 
 ```bash
 npx vercel            # first time: link project
-npx vercel env add OPENAI_API_KEY
+npx vercel env add ANTHROPIC_API_KEY
 npx vercel --prod
 ```
 

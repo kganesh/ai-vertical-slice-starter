@@ -70,7 +70,9 @@ backend/
   app/repository/        Protocol interface + JSON-file implementation (atomic write via
                          tmp file + os.replace, asyncio.Lock to serialize writes)
   app/container.py       composition root: picks repository + AI provider from env
-  app/ai/provider.py     AI_PROVIDER=openai|anthropic, AI_MODEL, keys from env; None if no key
+  app/ai/provider.py     Anthropic SDK (AI_MODEL default claude-sonnet-5-5), ANTHROPIC_API_KEY from env;
+                         None if no key. Structured output via the SDK's structured
+                         outputs / a forced JSON schema, parsed into the Pydantic model
   app/ai/structured.py   generate_structured(task, schema, system, prompt, fallback, check,
                          timeout_s=15) -> {source: "ai"|"fallback", data, reason?, latency_ms}.
                          Structured output parsed into the Pydantic schema; 1 retry; any
