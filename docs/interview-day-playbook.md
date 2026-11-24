@@ -1,6 +1,6 @@
 # Interview-day playbook (2.5h)
 
-Prompts for each step: [`prompt-playbook.md`](prompt-playbook.md).
+Prompts for each step: [`prompt-playbook.md`](prompt-playbook.md). Source of truth during the build: [`spec.md`](spec.md).
 
 ## Before the call
 - [ ] `git pull && npm install && npm run check`

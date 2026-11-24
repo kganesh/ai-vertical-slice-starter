@@ -10,6 +10,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## Project conventions (for Claude Code / Cursor)
 
+- **`docs/spec.md` is the single source of truth** for requirements, invariants, domain model, API and backlog. Read it before any change, implement one backlog item at a time, update its status when done, and don't build anything not in it. If the code and spec disagree, ask; don't silently pick one.
 - **Domain first:** add/change fields in `src/domain/*.ts` (zod). API, repository and UI derive types from there; never hand-write duplicate types.
 - **Routes stay thin:** `withErrorHandling` + `parseJson`/`parseQuery` → repository/service → `Response.json`. Throw `AppError` (`src/lib/errors.ts`); never return ad-hoc error shapes.
 - **Storage only via** the repository interface wired in `src/server/container.ts`.
