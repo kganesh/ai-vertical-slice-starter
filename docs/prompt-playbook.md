@@ -1,5 +1,7 @@
 # Prompt playbook
 
+> **Python backend required?** Use [`prompt-playbook-python.md`](prompt-playbook-python.md) instead (same Steps 0–1, FastAPI build steps).
+
 Prompts to paste into Claude Code / Cursor, in order. `[brackets]` are what you fill in.
 Times assume the 2-hour build. Worked example: branch `practice-clean-claim`
 (see its `docs/spec.md`).
