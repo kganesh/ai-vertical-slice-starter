@@ -7,46 +7,58 @@
 import { z } from "zod";
 import { AppError, type ApiErrorBody } from "@/lib/errors";
 import { log } from "@/lib/logger";
+import { requestIdFrom, runWithRequestContext } from "@/lib/request-context";
 
 type Handler<C> = (req: Request, ctx: C) => Promise<Response>;
 
+/** Copy so headers are mutable even if the handler returned an immutable Response. */
+function withRequestId(res: Response, requestId: string) {
+  const out = new Response(res.body, res);
+  out.headers.set("x-request-id", requestId);
+  return out;
+}
+
 export function withErrorHandling<C>(handler: Handler<C>): Handler<C> {
-  return async (req, ctx) => {
-    const requestId = crypto.randomUUID();
-    const started = performance.now();
-    try {
-      const res = await handler(req, ctx);
-      log.info("request", {
-        requestId,
-        method: req.method,
-        path: new URL(req.url).pathname,
-        status: res.status,
-        ms: Math.round(performance.now() - started),
-      });
-      return res;
-    } catch (err) {
-      const appErr =
-        err instanceof AppError
-          ? err
-          : new AppError("INTERNAL", "Something went wrong. Please try again.");
-      log[appErr.status >= 500 ? "error" : "warn"]("request_failed", {
-        requestId,
-        method: req.method,
-        path: new URL(req.url).pathname,
-        code: appErr.code,
-        // Never leak internals to the client; log them server-side only.
-        cause: err instanceof Error ? err.message : String(err),
-      });
-      const body: ApiErrorBody = {
-        error: {
+  return (req, ctx) => {
+    const requestId = requestIdFrom(req);
+    // Everything logged inside this call (services, AI) carries requestId automatically.
+    return runWithRequestContext({ requestId }, async () => {
+      const started = performance.now();
+      const path = new URL(req.url).pathname;
+      try {
+        const res = await handler(req, ctx);
+        log.info("request", {
+          method: req.method,
+          path,
+          status: res.status,
+          ms: Math.round(performance.now() - started),
+        });
+        return withRequestId(res, requestId);
+      } catch (err) {
+        const appErr =
+          err instanceof AppError
+            ? err
+            : new AppError("INTERNAL", "Something went wrong. Please try again.");
+        log[appErr.status >= 500 ? "error" : "warn"]("request_failed", {
+          method: req.method,
+          path,
+          status: appErr.status,
           code: appErr.code,
-          message: appErr.message,
-          details: appErr.details,
-          requestId,
-        },
-      };
-      return Response.json(body, { status: appErr.status });
-    }
+          ms: Math.round(performance.now() - started),
+          // Never leak internals to the client; log them server-side only.
+          cause: err instanceof Error ? err.message : String(err),
+        });
+        const body: ApiErrorBody = {
+          error: {
+            code: appErr.code,
+            message: appErr.message,
+            details: appErr.details,
+            requestId,
+          },
+        };
+        return withRequestId(Response.json(body, { status: appErr.status }), requestId);
+      }
+    });
   };
 }
 
