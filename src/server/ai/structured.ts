@@ -55,7 +55,8 @@ export async function generateStructured<S extends z.ZodType>(
       system: req.system,
       prompt: req.prompt,
       output: Output.object({ schema: req.schema }),
-      temperature: 0,
+      // No temperature: current Claude models ignore it (and warn). Consistency comes
+      // from the schema + check(), and business rules live in deterministic code.
       maxRetries: 1,
       abortSignal: AbortSignal.timeout(req.timeoutMs ?? 15_000),
     });

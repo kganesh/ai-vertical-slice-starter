@@ -1,8 +1,35 @@
 # Prompt playbook
 
+> **Python backend required?** Use [`prompt-playbook-python.md`](prompt-playbook-python.md) instead (same Steps 0–1, FastAPI build steps).
+
 Prompts to paste into Claude Code / Cursor, in order. `[brackets]` are what you fill in.
-Times assume the 2-hour build. Worked example: branch `practice-clean-claim`
-(see its `docs/spec.md`).
+Worked example: branch `practice-clean-claim` (see its `docs/spec.md`).
+
+## Timeline (matches the assessment's three phases)
+
+| Clock | Phase | Step |
+|---|---|---|
+| 0:00–0:10 | I. Comprehension & Briefing | Step 0: understand, restate, ask, scope |
+| 0:10–0:15 | II. Build | Step 1: write the spec |
+| 0:15–1:25 | II. Build | Step 2: backlog items, one at a time |
+| 1:25–1:40 | II. Build | **Step 3: UX & accessibility polish** (protected; don't skip) |
+| 1:40–1:50 | II. Build | Step 4: code + security review |
+| 1:50–2:00 | II. Build | Step 5: docs + deploy (demo locally if not up by 1:55) |
+| 2:00–2:10 | II. Build | Step 6: presentation prep + one demo rehearsal |
+| 2:10–2:30 | III. Presentation & Discussion | ~10–12 min talk, rest is their questions |
+
+**Behind at 1:25?** Cut a backlog item, not the polish step. UI quality is called "critical".
+
+## How the steps map to their success criteria
+
+| Their criterion | Where it's earned |
+|---|---|
+| **Execution:** functional slice, backend to UI | Step 2 P0 items; end-to-end before any P1 |
+| **Product judgment:** purposeful, usable, speed vs simplicity | Step 0 scope + cuts; Step 3 polish; spec backlog + change log |
+| **Technical rigor:** graceful errors, composable architecture | Starter patterns; invariants + tests (Step 2); Step 4 review |
+| **AI responsibility:** pragmatic, accuracy-aware, safe fallbacks | Spec §4; AI item notes; prompt-injection test; Step 4 LLM checks |
+| *"How you prioritize under time constraints"* | Spec backlog order, statuses, Cut list, change log; say cuts out loud |
+| *"How you apply AI"* (in your workflow) | Spec-driven prompts; read and narrate every diff |
 
 **`docs/spec.md` is the single source of truth.** Steps 0–1 fill it. Every build step
 implements ONE backlog item from it and updates its status. Clarifications and cuts go
@@ -30,7 +57,8 @@ Reply in under 300 words:
 3. AMBIGUITIES: top 5 questions whose answers would change what I build, most important first.
 4. SIZING/NFRs: one-line assumptions for data size, latency, availability, consistency,
    auditability; only ones that would change a design decision.
-5. AI FIT: where AI belongs vs. where deterministic code is safer, one line each.
+5. AI FIT: the user's hardest or most tedious step that AI can genuinely remove (that's the
+   AI feature), and where deterministic code is safer, one line each.
 6. SCOPE: must-have / stretch / cut.
 ```
 
@@ -64,7 +92,7 @@ Commit "Add spec".
 
 ---
 
-## Step 2 · Build backlog items (0:15–1:35) · *repeat per item*
+## Step 2 · Build backlog items (0:15–1:25) · *repeat per item*
 
 One prompt shape for every item: adapt-starter, core logic, AI feature, UI.
 
@@ -114,7 +142,46 @@ which done items (if any) are now affected. No code changes yet.
 
 ---
 
-## Step 3 · Review: quality + security (1:35–1:45)
+## Step 3 · UX & accessibility polish (1:25–1:40)
+
+Their overview calls UI clarity, aesthetics and accessibility **critical**. This slot is
+protected: if you're behind, cut a backlog item instead.
+
+```
+Read docs/spec.md. Review the running app as a demanding product designer and an
+accessibility reviewer. Do not add features or change the API. Check and fix:
+
+Clarity & purpose
+- The first thing on screen answers the user's main question (spec: "[question]")
+- One obvious primary action per view; secondary actions visually quieter
+- Copy uses the user's language ([role]), not developer terms; numbers have units
+- Empty states say what to do next; errors say what happened and how to recover
+
+Aesthetics
+- Consistent spacing, type scale and alignment; numbers right-aligned, tabular
+- Status uses colour AND text/icon (never colour alone)
+- Nothing wraps awkwardly or overflows at 1280px and 390px widths
+
+Accessibility
+- Every input has a visible label and an inline error tied to it (aria-describedby)
+- Keyboard: every action reachable by Tab, visible focus ring, logical order
+- Icon-only buttons have aria-labels; decorative icons aria-hidden
+- Loading regions use aria-busy; async results announced (aria-live)
+- Text contrast meets WCAG AA
+
+AI UX
+- AI vs fallback clearly labelled; confidence + rationale visible; uncertain fields
+  highlighted; nothing saved without an explicit confirm
+
+List what you changed in 5 bullets. npm run check, commit "Polish UI".
+```
+
+**You do (2 min):** open the app at full width and at phone width, Tab through the main
+flow with the keyboard only, and run the demo path once. Fix only what you see break.
+
+---
+
+## Step 4 · Review: quality + security (1:40–1:50)
 
 Run once, near the end, on the whole branch, not per item. Time-box: 10 minutes
 including fixes. Fix only real findings; note the rest in the spec as "next week".
@@ -149,7 +216,7 @@ List anything deferred so I can add it to the spec.
 
 ---
 
-## Step 4 · Ship (1:45–1:55)
+## Step 5 · Docs + deploy (1:50–2:00)
 
 ```
 Update README.md for [App name]: problem in one paragraph, how to run, the main flow,
@@ -158,11 +225,14 @@ statuses and the Cut list are accurate. npm run check, commit "Docs".
 ```
 
 Then: `git push` → Vercel redeploys → open the live URL, run the demo path once.
-**If deploy isn't working by 1:50, stop and demo locally.**
+**If deploy isn't working by 1:55, stop and demo locally.**
 
 ---
 
-## Step 5 · Presentation prep (1:55–2:05) · *chat*
+## Step 6 · Presentation prep (2:00–2:10) · *chat*
+
+The 20-minute slot is "Presentation **& Discussion**": plan a 10–12 minute talk and leave
+the rest for their questions. Engineers are live; the CPTO watches the recording.
 
 ```
 Here is my spec, decisions log, and git log:
@@ -170,17 +240,20 @@ Here is my spec, decisions log, and git log:
 <decisions>[paste docs/decisions.md]</decisions>
 <gitlog>[paste: git log --oneline main..HEAD]</gitlog>
 
-Write a 20-minute talk track as bullets for engineers (recorded for a CPTO):
-1. Product (2 min): user, problem, requirements R1..Rn, demo path step by step
-   (happy path → AI path → AI fallback)
-2. Design (4 min): sizing/NFRs and the decisions they drove; domain model; invariants;
-   where AI is and isn't used, and why
-3. Trade-offs (4 min): the 4 strongest, each "chose X over Y because Z; revisit when W";
-   include what I cut and why
-4. Quality & security (2 min): tests on invariants, error envelope + request ids,
-   OWASP/LLM risks addressed and deferred
-5. Next week (2 min): production hardening in priority order
-6. Five likely hard questions, with a 2-sentence answer each
+Write a 10–12 minute talk track as bullets, structured by their four success criteria.
+Audience: engineers live, CPTO on the recording later (so open with the product, not the code).
+1. Product (2 min): user, problem, R1..Rn; live demo path step by step
+   (happy path → AI path → AI fallback by removing the key)
+2. Execution (1 min): what's working end to end; what I cut and why (from the backlog)
+3. Product judgment (1.5 min): the UX choices that make it purposeful (what's on top and
+   why, review-before-save, empty/error states, accessibility)
+4. Technical rigor (3 min): sizing/NFRs and the decisions they drove; composable layers;
+   invariants + tests; error envelope + request ids; the 2 strongest trade-offs as
+   "chose X over Y because Z; revisit when W"
+5. AI responsibility (2 min): where AI is and isn't used and why; accuracy guards
+   (schema, grounding check, confidence, human confirm); fallback; OWASP LLM risks
+6. Next week (1 min): production hardening in priority order
+Then: six likely hard questions with a 2-sentence answer each.
 ```
 
 **Rehearse the demo once.** Fix only what breaks.
