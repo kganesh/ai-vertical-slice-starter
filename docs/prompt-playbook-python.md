@@ -14,7 +14,19 @@ Browser ──► Next.js (UI, :3000) ──rewrite /api/*──► FastAPI (:80
 ```
 
 **Budget:** the scaffold step (P1) costs ~15 minutes the TypeScript path doesn't. Cut one
-P1 backlog item up front and say so.
+P1 backlog item up front and say so. **Never cut the UI polish step (P2b).**
+
+| Clock | Step |
+|---|---|
+| 0:00–0:10 | Step 0 (main playbook) |
+| 0:10–0:15 | Step 1 spec (main playbook) |
+| 0:15–0:30 | P1 scaffold FastAPI |
+| 0:30–1:25 | P2 backlog items |
+| 1:25–1:40 | P2b UX & accessibility polish: use Step 3 of the main playbook unchanged |
+| 1:40–1:50 | P3 review |
+| 1:50–2:00 | P4 docs (demo locally) |
+| 2:00–2:10 | P5 presentation prep |
+| 2:10–2:30 | ~10–12 min talk + discussion |
 
 **Rhythm for every step:** paste prompt → read the diff → one sentence on what you
 kept/changed → `make check` → commit.
@@ -97,7 +109,7 @@ shows `x-request-id`.
 
 ---
 
-## Step P2 · Build backlog items (≈0:30–1:35) · *repeat per item*
+## Step P2 · Build backlog items (≈0:30–1:25) · *repeat per item*
 
 ```
 Read AGENTS.md, backend/AGENTS.md and docs/spec.md. Implement backlog item [P0-n] only.
@@ -144,7 +156,14 @@ Same as the main playbook: update `docs/spec.md` first, no code.
 
 ---
 
-## Step P3 · Review: quality + security (1:35–1:45)
+## Step P2b · UX & accessibility polish (1:25–1:40)
+
+Use **Step 3 of `prompt-playbook.md`** unchanged: it reviews the Next.js UI, which is the
+same in both variants.
+
+---
+
+## Step P3 · Review: quality + security (1:40–1:50)
 
 ```
 Review the diff of this branch against main as a senior Python/TypeScript engineer and an
@@ -174,7 +193,7 @@ List deferred items so I can add them to the spec.
 
 ---
 
-## Step P4 · Ship (1:45–1:55)
+## Step P4 · Docs + demo (1:50–2:00)
 
 ```
 Update README.md: problem in one paragraph; how to run (npm install, backend setup,
@@ -193,7 +212,7 @@ at 1:40.
 
 ## Step P5 · Presentation prep
 
-Use Step 5 from `prompt-playbook.md`, adding to the Design section:
+Use Step 6 from `prompt-playbook.md` (10–12 minute talk), adding to Technical rigor:
 "why the UI stayed in Next.js and only the API moved to FastAPI; how the API contract
 (paths, camelCase JSON, error envelope) is kept in sync; production: generate TypeScript
 types from FastAPI's OpenAPI schema instead of mirroring by hand."
